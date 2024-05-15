@@ -1,10 +1,4 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <getopt.h>
-#include <string.h>
-#include <fcntl.h>
-#include "minishell/inc/minishell.h"
-
+#include "minishell.h"
 
 void print_banner() {
     printf("                   _____       __    __          __\n");
@@ -13,7 +7,7 @@ void print_banner() {
     printf("                 ___/ / /_/ / /_/ / /  __/ /  / /_\n");
     printf("                /____/\\__,_/_.___/_/\\___/_/   \\__/\n");
     printf("\n");
-    printf("             Author: Yassine Aboukir (@yassineaboukir)\n");
+    printf("             Author: youssef achtatal \n");
     printf("                           Version: 1.4.7\n");
 }
 
@@ -62,7 +56,6 @@ int fork_processes(int num_commands, t_list *commands)
     tmp = commands;
     while (i < num_commands && tmp)
     {
-        printf("Command 1: %s", tmp->content);
         pid = fork();
         if (pid < 0)
             return (perror("fork"), 1);
@@ -70,7 +63,6 @@ int fork_processes(int num_commands, t_list *commands)
         {
             command = tmp->content;
             /*  here i will execut my  minishell */
-            printf("Command: %s", command);
             exec_command(command);
             exit(0);
         }
@@ -171,6 +163,8 @@ int main(int argc, char *argv[])
 
     int num_commands = 0;
     fd = open(file_name, O_RDONLY);
+    if (fd == -1)
+        return (perror("scprecon"), 1);
     line = get_next_line(fd);
     while (line)
     {
@@ -186,8 +180,6 @@ int main(int argc, char *argv[])
         line = get_next_line(fd);
     }
     close(fd);
-    printf("Num commands 1: %d\n", num_commands);
-    printf("processes: %d\n", processes);
     if (num_commands > processes)
         processes  = num_commands;
     fork_processes(processes, commands);

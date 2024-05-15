@@ -1,3 +1,0 @@
-assetfinder --subs-only "$1" | tee -a assetfinder.txt
-
-#subfinder -silent -all -d "$1" 

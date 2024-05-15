@@ -29,6 +29,9 @@
 # include "types.h"
 #include   <signal.h>
 #include <readline/readline.h>
+#include <curl/curl.h>
+#include <getopt.h>
+
 
 
 #include <termios.h>

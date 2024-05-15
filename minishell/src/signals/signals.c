@@ -29,8 +29,6 @@ void	handle_interrupt(int sig)
 	{
 		rl_on_new_line();
 		rl_replace_line("", 1);
-		char *prompt = get_prompt_with_user_details(1);
-		ft_printf("%s", prompt);
 		rl_redisplay();
 	}
 	//tputs(tgetstr("cr", NULL), 1, my_putchar);

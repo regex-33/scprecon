@@ -26,12 +26,16 @@ char	*ft_which(char *cmd, char **path_dirs)
 		cmd_pathname = ft_strjoin(path_dirs[i], tmp);
 		if (!cmd_pathname)
 			return (free(tmp), NULL);
+		//printf("cmd_pathname: %s\n", cmd_pathname);
 		if (is_file(cmd_pathname))
 			return (free(tmp), cmd_pathname);
+		//printf("cmd_pathname: %s\n", cmd_pathname);
 		free(cmd_pathname);
 	}
 	return (free(tmp), NULL);
 }
+
+
 
 void	print_err(char *mid, char *suffix)
 {
@@ -81,6 +85,7 @@ int	init_command(t_prexec *pexec, t_context *ctx, char **args)
 	else
 	{
 		pexec->cmd_name = ft_which(args[0], path_dirs);
+		printf("cmd_name: %s\n", pexec->cmd_name);
 		if (!pexec->cmd_name)
 		{
 			pexec->err = 127;

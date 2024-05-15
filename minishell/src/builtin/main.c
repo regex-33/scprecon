@@ -1,6 +1,4 @@
 #include "../../inc/minishell.h"
-#include <bits/termios-c_lflag.h>
-#include <signal.h>
 
 int	select_buildin_commands(char **args, t_list *redir_list, t_context *ctx)
 {
@@ -86,6 +84,8 @@ int	exec_command(char *command)
 	t_btree				*parse_tree;
 	struct sigaction	saint;
 
+	if (!command)
+		return 1;
 	if (init_context(&ctx))
 		return 1;
 	saint.sa_handler = handle_interrupt;
@@ -93,12 +93,10 @@ int	exec_command(char *command)
 	sigaction(SIGINT, &saint, NULL);
 	signal(SIGQUIT, handle_quit);
 	get_state(ON_EXEC, SET_STATE);
-	if (!line)
-		exit(0);
-	tokens = lexer(line);
+	tokens = lexer(command);
 	if (!tokens)
 		return 1;
-	add_history(line);
+	add_history(command);
 	parse_tree = parse(tokens);
 	next_token(tokens, RESET_TOK);
 	if (!parse_tree)

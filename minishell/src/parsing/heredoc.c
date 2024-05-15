@@ -147,15 +147,3 @@ int	prompt_heredoc(t_btree *tree)
 	}
 	return (0);
 }
-
-// int main(int ac, char **av)
-// {
-// 	t_redir	redir;
-// 	char	*filename;
-// 
-// 	redir.delimiter = av[1];
-// 	filename = heredoc(&redir);
-// 	if (!filename)
-// 		ft_printf("ERROR HEREDOC\n");
-// 	return (0);
-// }
