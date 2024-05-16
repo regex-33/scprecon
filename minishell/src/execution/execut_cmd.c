@@ -26,16 +26,14 @@ char	*ft_which(char *cmd, char **path_dirs)
 		cmd_pathname = ft_strjoin(path_dirs[i], tmp);
 		if (!cmd_pathname)
 			return (free(tmp), NULL);
-		//printf("cmd_pathname: %s\n", cmd_pathname);
+		// printf("cmd_pathname: %s\n", cmd_pathname);
 		if (is_file(cmd_pathname))
 			return (free(tmp), cmd_pathname);
-		//printf("cmd_pathname: %s\n", cmd_pathname);
+		// printf("cmd_pathname: %s\n", cmd_pathname);
 		free(cmd_pathname);
 	}
 	return (free(tmp), NULL);
 }
-
-
 
 void	print_err(char *mid, char *suffix)
 {
@@ -122,7 +120,6 @@ char	**get_cmd_args(char **cmd_args, char **path_dirs)
 	return (cmd_args);
 }
 
-
 void	print_fd_err(int fd)
 {
 	ft_putstr_fd("minishell: ", 2);
@@ -134,11 +131,54 @@ void	print_fd_err(int fd)
 	perror(NULL);
 }
 
-int	exec_cmd(t_list *redir_list, char **args, t_context *ctx)
+int	append_file_content_to_alldomains_file(t_list *redir_list, t_context *ctx)
 {
-	pid_t		pid;
-	t_prexec	pexec;
-	int			status;
+	t_redir *redir;
+	char *content;
+	int fd;
+	int fd_new;
+
+	(void)ctx;
+	if (ctx->save_all)
+		return 1;
+	fd_new = open("alldomains.txt", O_WRONLY | O_CREAT | O_APPEND, 0644);
+	if (fd_new < 0)
+	{
+		perror("Error opening alldomains.txt");
+		return (1);
+	}
+	while (redir_list)
+	{
+		redir = redir_list->content;
+		fd = open(redir->filename, O_RDONLY);
+		if (fd < 0)
+		{
+			perror("Error opening input file");
+			close(fd_new);
+			return (1);
+		}
+
+		content = get_next_line(fd);
+		printf("content: %s\n", content);
+		while (content && *content != '\n')
+		{
+			ft_putstr_fd(content, fd_new);
+			free(content);
+			content = get_next_line(fd);
+		}
+		close(fd);
+		redir_list = redir_list->next;
+	}
+	close(fd_new);
+	return (0);
+}
+
+
+int exec_cmd(t_list * redir_list, char **args, t_context *ctx)
+{
+	pid_t pid;
+	t_prexec pexec;
+	int status;
 
 	status = select_buildin_commands(args, redir_list, ctx);
 	if (status != -1)
@@ -148,7 +188,7 @@ int	exec_cmd(t_list *redir_list, char **args, t_context *ctx)
 		return (perror("minishell"), 0);
 	if (pid == 0)
 	{
-		//signal(SIGQUIT, SIG_DFL);
+		// signal(SIGQUIT, SIG_DFL);
 		if (redirect(redir_list, ctx))
 			return (exit(EXIT_FAILURE), 0);
 		reset_redir(redir_list, 0);
@@ -170,6 +210,3 @@ int	exec_cmd(t_list *redir_list, char **args, t_context *ctx)
 	}
 	return (1);
 }
-
-// echo * segv when no file on dir/h
-// export

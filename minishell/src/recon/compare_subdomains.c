@@ -96,7 +96,8 @@ void	read_file_to_table(const char *filename, HashTable *hashTable)
 	file = fopen(filename, "r");
 	if (!file)
 	{
-		perror("Failed to open file");
+		printf("filename: %s\n", filename);
+		perror("Failed to open file 1");
 		exit(EXIT_FAILURE);
 	}
 	while (fgets(line, sizeof(line), file))
@@ -107,17 +108,57 @@ void	read_file_to_table(const char *filename, HashTable *hashTable)
 	fclose(file);
 }
 
-void	compare_files(const char *old_file, const char *new_file)
+int add_new_subdomains(void)
+{
+	int	fd;
+	char *line;
+	int  new_fd = 0;
+
+	fd = open("./output/new_subdomains.txt", O_RDONLY);
+	if (fd == -1)
+	{
+		perror("Failed to open file 2");
+		return (1);
+	}
+	new_fd = open("./output/alldomains.txt.old", O_CREAT | O_WRONLY | O_APPEND, 0644);
+	if (new_fd == -1)
+	{
+		perror("Failed to open file 3");
+		return (1);
+	}
+	line = get_next_line(fd);
+	while (line)
+	{
+		printf("line: %s\n", line);
+		if (*line != '\n' && *line != '\0' && *line != '#')
+			ft_putstr_fd(line, new_fd);
+		free(line);
+		line = get_next_line(fd);
+	}
+	close(fd);
+	close(new_fd);
+	return (0);
+}
+
+void	compare_files(const char *old_file, const char *new_file, char *discord_webhook_url)
 {
 	HashTable	*oldTable;
 	HashTable	*newTable;
 	Node		*current;
+	int			fd;
+	int			new = 0;
 
 	oldTable = create_table();
 	newTable = create_table();
 	read_file_to_table(old_file, oldTable);
 	read_file_to_table(new_file, newTable);
-	printf("Subdomains in %s not present in %s:\n", new_file, old_file);
+	fd = open("./output/new_subdomains.txt", O_CREAT | O_WRONLY , 0644);
+	if (fd == -1)
+	{
+		printf("i am here test\n");
+		perror("Failed to open file 4");
+		exit(EXIT_FAILURE);
+	}
 	for (int i = 0; i < HASH_TABLE_SIZE; i++)
 	{
 		current = newTable->table[i];
@@ -125,11 +166,26 @@ void	compare_files(const char *old_file, const char *new_file)
 		{
 			if (!exists(oldTable, current->subdomain))
 			{
-				printf("%s\n", current->subdomain);
+				new = 1;
+				printf("hello world %s\n", current->subdomain);
+				ft_putendl_fd(current->subdomain, fd);	
 			}
 			current = current->next;
 		}
 	}
+	close(fd);
 	free_table(oldTable);
 	free_table(newTable);
+	if (new)
+	{
+		add_new_subdomains();
+		exec_command("mv ./output/alldomains.txt.old ./output/alldomains.txt", 0);
+		send_discord_file(discord_webhook_url, "./output/new_subdomains.txt", "New subdomains found!");
+	}
+	else
+	{
+		exec_command("rm ./output/alldomains.txt.old", 0);
+		send_discord_file(discord_webhook_url, "./output/new_subdomains.txt", "No new subdomains found.");
+	}
+	exec_command("rm ./output/new_subdomains.txt", 0);
 }

@@ -76,6 +76,7 @@ int exec_simple(t_btree *tree, t_context *ctx)
 	if (!args)
 		return 1;
 	status = exec_cmd(redir, args, ctx);
+	// append_file_content_to_alldomains_file(redir, ctx);
 	return (free_array(args), status);
 }
 

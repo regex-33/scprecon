@@ -1,4 +1,6 @@
 ls > hello
-id
-whoami
-echo $PATH
+id > test
+hostname -op >> $1
+hostname >> hello
+whoami >> test
+Echo badr test >> test

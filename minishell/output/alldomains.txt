@@ -17,3 +17,6 @@ src
 test
 e1r6p8.1337.ma
 e1r6p8.1337.ma
+uid=101062(yachtata) gid=4221(candidates) groups=4221(candidates),12(everyone),62(netaccounts)
+yachtata
+badr test

@@ -81,9 +81,10 @@ int	parse_existing_variable(char *str, int flag)
 	return (add_to_value);
 }
 
-int	init_context(t_context *ctx)
+int	init_context(t_context *ctx, int save_all)
 {
 	ctx->env = NULL;
+	ctx->save_all = save_all;
 	ctx->unset_path = 0;
 	ctx->hidden_path = 0;
 	ctx->env = ft_creat_env(ctx);

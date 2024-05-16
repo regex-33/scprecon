@@ -24,6 +24,8 @@ int	select_buildin_commands(char **args, t_list *redir_list, t_context *ctx)
 	else if (!ft_strcmp(args[0], "unset"))
 		status = ft_unset(args, &ctx->env, &ctx->unset_path);
 	reset_redir(redir_list, 1);
+	// if (ctx->save_all)
+		// append_file_content_to_alldomains_file(redir_list, ctx);
 	return (status);
 }
 
@@ -76,7 +78,7 @@ void	init_terminal(void)
 
 
 
-int	exec_command(char *command)
+int	exec_command(char *command, int save_all)
 {
 	//char				*pwd;
 	t_list				*tokens;
@@ -86,7 +88,7 @@ int	exec_command(char *command)
 
 	if (!command)
 		return 1;
-	if (init_context(&ctx))
+	if (init_context(&ctx, save_all))
 		return 1;
 	saint.sa_handler = handle_interrupt;
 	sigemptyset(&saint.sa_mask);

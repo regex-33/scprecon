@@ -101,7 +101,7 @@ int get_state(int new_state, int flags);
 int	is_builtin(char *cmd_name);
 char	**grep_paths(char **env, int *hiden_path);
 int	parse_existing_variable(char *str, int flag);
-int	init_context(t_context *ctx);
+int	init_context(t_context *ctx, int save_all);
 
 /*      environment         */
 
@@ -185,9 +185,14 @@ void    handle_quit(int sig);
 
 /*      */
 
-void	compare_files(const char *old_file, const char *new_file);
+void	compare_files(const char *old_file, const char *new_file, char *discord_url);
 void send_discord_file(const char *webhook_url, const char *file_path, const char *message);
-int   exec_command(char *command);
-void reset_all();
+int   exec_command(char *command, int save_all);
+void reset_all(int save_all);
 int list_domains(void);
+int	remove_domain_in_list(const char *domain_to_delete);
+int add_domain_to_list(char *domain);
+int check_domain(char *domain);
+int append_file_content_to_alldomains_file(t_list *redir_list, t_context *ctx);
+
 #endif

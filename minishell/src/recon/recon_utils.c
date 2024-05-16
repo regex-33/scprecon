@@ -1,8 +1,8 @@
 #include "minishell.h"
 
-void reset_all()
+void reset_all(int save_all)
 {
-    exec_command("cd ./output/ && rm -f *.txt && cd .. && rm -f domains.txt && touch domains.txt");
+    exec_command("cd ./output/ && rm -f *.txt && cd .. && rm -f domains.txt && touch domains.txt", save_all);
     printf(ANSI_COLOR_RED "\n[!] Sublert was reset successfully. Please add new domains to monitor!" ANSI_COLOR_RESET);
 }
 
@@ -22,11 +22,33 @@ int list_domains(void)
     return 0;
 }
 
+int check_domain(char *domain)
+{
+    int fd;
+    char *line = NULL;
+
+    fd = open("domains.txt", O_RDONLY);
+    if (fd == -1)
+        return (perror("file doas not exist"), 1);
+    while ((line = get_next_line(fd)))
+    {
+        line[strcspn(line, "\n")] = 0;
+        if (!strcmp(line, domain))
+        {
+            printf(ANSI_COLOR_RED"\n[!] %s is already being monitored."ANSI_COLOR_RESET, domain);
+            free(line);
+            return 1;
+        }
+        free(line);
+    }
+    return 0;
+}
+
 int add_domain_to_list(char *domain)
 {
     FILE *domains;
 
-    if (!domain)
+    if (!domain || check_domain(domain))
         return 1;
     domains = fopen("domains.txt", "a");
     if (!domains)

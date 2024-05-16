@@ -8,6 +8,7 @@ typedef struct s_context
 	int		unset_path;
 	int		hidden_path;
     int     last_status;
+	int		save_all;
 }          t_context;
 
 typedef enum e_redir_type

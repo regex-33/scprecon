@@ -27,10 +27,11 @@ int exec_pipe(t_btree *tree, t_context *ctx, int pipes[2][2], int is_root)
 	if (!is_root)
 	{
 		add_pipe(pipes);
-		return (exec_piped_cmd(tree->right, ctx, pipes));
+		// return (exec_piped_cmd(tree->right, ctx, pipes), append_file_content_to_alldomains_file(tree->right->data, ctx));
+		return (exec_piped_cmd(tree->right, ctx, pipes), 0); 
 	}
 	else
-		return (exec_last_piped_cmd(tree->right, ctx, pipes[OUT_PIPE]));
+		return (exec_last_piped_cmd(tree->right, ctx, pipes[OUT_PIPE]), 0);
 }
 
 int	exec_sub(t_btree *tree, t_context *ctx)
@@ -46,6 +47,8 @@ int	exec_sub(t_btree *tree, t_context *ctx)
 	{
 		if (redirect(redir_list, ctx))
 			return (exit(1), 0);
+		// if (ctx->save_all)
+		// 	append_file_content_to_alldomains_file(redir_list, ctx);
 		exit(__exec(tree->left, ctx));
 	}
 	else
@@ -97,6 +100,8 @@ pid_t	exec_piped_cmd(t_btree *tree, t_context *ctx, int pipes[2][2])
 			if (redirect(redir_list, ctx))
 				return (exit(1), 0);
 			reset_redir(redir_list, 0);
+			// if (ctx->save_all)
+				// append_file_content_to_alldomains_file(redir_list, ctx);
 			exit(__exec(tree->left, ctx));
 		}
 		cmd = tree->data;
@@ -111,6 +116,8 @@ pid_t	exec_piped_cmd(t_btree *tree, t_context *ctx, int pipes[2][2])
 		if (redirect(redir_list, ctx))
 			return (exit(1), 0);
 		reset_redir(redir_list, 0);
+		// if (ctx->save_all)
+			// append_file_content_to_alldomains_file(redir_list, ctx);
 		if (init_command(&pexec, ctx, pexec.args))
 			return (exit(pexec.err), 0);
 		if (execve(pexec.cmd_name, pexec.args, ctx->env))
@@ -149,6 +156,8 @@ pid_t	exec_last_piped_cmd(t_btree *tree, t_context *ctx, int fd[2])
 		{
 			if (redirect(redir_list, ctx))
 				return (exit(1), 0);
+			// if (ctx->save_all)
+				// append_file_content_to_alldomains_file(redir_list, ctx);
 			exit(__exec(tree->left, ctx));
 		}
 		cmd = tree->data;
@@ -163,6 +172,8 @@ pid_t	exec_last_piped_cmd(t_btree *tree, t_context *ctx, int fd[2])
 		if (redirect(redir_list, ctx))
 			return (exit(1), 0);
 		reset_redir(redir_list, 0);
+		// if (ctx->save_all)
+			// append_file_content_to_alldomains_file(redir_list, ctx);
 		if (init_command(&pexec, ctx, pexec.args))
 			return (exit(pexec.err), 0);
 		if (execve(pexec.cmd_name, pexec.args, ctx->env))
