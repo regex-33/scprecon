@@ -1,5 +1,4 @@
-ls
-
+ls > hello
 id
 whoami
 echo $PATH

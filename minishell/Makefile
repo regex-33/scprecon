@@ -71,7 +71,7 @@ PARSING_SOURCES = util_funcs.c lexer.c real_parser.c binary_tree.c parse_utils.c
 EXECUTION_SOURCES = pipes.c redirections.c exec.c etc_functions.c execut_cmd.c #parse_command.c
 EXPANDING_SOURCES = heredoc_expanding.c expanding.c expanding_utils.c mereg_sort.c single_duble_dollar.c asterisk.c
 SIGNALS_SOURCES = signals.c
-RECON_SOURCES = compare_subdomains.c post_to_discord.c remove.c scprecon.c
+RECON_SOURCES = compare_subdomains.c post_to_discord.c remove.c scprecon.c recon_utils.c
 # PIPX_SOURCES = util_funcs.c lexer.c real_parser.c binary_tree.c exec.c
 
 

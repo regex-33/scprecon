@@ -85,7 +85,6 @@ int	init_command(t_prexec *pexec, t_context *ctx, char **args)
 	else
 	{
 		pexec->cmd_name = ft_which(args[0], path_dirs);
-		printf("cmd_name: %s\n", pexec->cmd_name);
 		if (!pexec->cmd_name)
 		{
 			pexec->err = 127;

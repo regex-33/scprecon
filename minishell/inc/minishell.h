@@ -188,4 +188,6 @@ void    handle_quit(int sig);
 void	compare_files(const char *old_file, const char *new_file);
 void send_discord_file(const char *webhook_url, const char *file_path, const char *message);
 int   exec_command(char *command);
+void reset_all();
+int list_domains(void);
 #endif

@@ -19,8 +19,8 @@ void print_usage(const char *prog_name) {
     printf("  -d, --delete <domain>       Domain to remove from the monitored list. E.g: yahoo.com\n");
     printf("  -t, --processes <number>      Number of concurrent processes to use. Default: 10\n");
     printf("  -r, --resolve               Perform DNS resolution.\n");
-    printf("  -l, --logging               Enable Discord-based error logging.\n");
-    printf("  -a, --list                  Listing all monitored domains.\n");
+    printf("  -ll, --logging               Enable Discord-based error logging.\n");
+    printf("  -l, --list                  Listing all monitored domains.\n");
     printf("  -m, --reset                 Reset everything.\n");
     printf("  -h, --help                  Show this help message and exit.\n");
 }
@@ -48,7 +48,6 @@ int fork_processes(int num_commands, t_list *commands)
 {
     int i;
     pid_t pid;
-    int status;
     char *command;
     t_list *tmp;
 
@@ -62,7 +61,6 @@ int fork_processes(int num_commands, t_list *commands)
         else if (pid == 0)
         {
             command = tmp->content;
-            /*  here i will execut my  minishell */
             exec_command(command);
             exit(0);
         }
@@ -97,8 +95,8 @@ int main(int argc, char *argv[])
         {"delete", required_argument, 0, 'd'},
         {"processes", required_argument, 0, 'p'},
         {"resolve", no_argument, 0, 'r'},
-        {"logging", no_argument, 0, 'l'},
-        {"list", no_argument, 0, 'a'},
+        {"logging", no_argument, 0, 'b'},
+        {"list", no_argument, 0, 'l'},
         {"reset", no_argument, 0, 'm'},
         {"help", no_argument, 0, 'h'},
         {0, 0, 0, 0}
@@ -127,10 +125,10 @@ int main(int argc, char *argv[])
             case 'r':
                 resolve = 1;
                 break;
-            case 'l':
+            case 'b':
                 logging = 1;
                 break;
-            case 'a':
+            case 'l':
                 listing = 1;
                 break;
             case 'm':
@@ -155,6 +153,29 @@ int main(int argc, char *argv[])
     printf("  Listing: %d\n", listing);
     printf("  Reset: %d\n", reset);
 
+
+   /*   creat output directory if not exist */ 
+    struct stat st = {0};
+    
+    if (stat("./output", &st) == -1) {
+        mkdir("./output", 0700);
+    }
+
+    if (reset)
+    {
+        reset_all();
+        return 0;
+    }
+
+    if (listing)
+        if (list_domains())
+            return 1;
+    if (remove_domain)
+        if (remove_domain(remove_domain))
+            return 1;
+    if (target)
+        if (add_domain_to_list(target))
+            return 1; 
     int fd;
     char *line = NULL;
     char *file_name = "commands.txt";
@@ -171,6 +192,7 @@ int main(int argc, char *argv[])
         if (*line != '\n' && *line != '\0' && *line != '#')
         {
             num_commands++;
+            line[strlen(line) - 1] = '\0';
             new_commands = ft_lstnew(strdup(line));
             if (!new_commands)
                 return (ft_lstclear_libft(&commands, free), perror("scprecon"), 1);
