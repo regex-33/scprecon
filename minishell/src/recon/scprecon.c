@@ -1,6 +1,35 @@
 #include "minishell.h"
 #include <regex.h>
 
+
+char* replace_redirection(const char *line, int line_num) {
+    // Allocate memory for the modified command
+    char *modified_command = (char*)malloc(strlen(line) + 10); // Adding 10 to accommodate "file-" and line number
+    if (modified_command == NULL) {
+        printf("Memory allocation failed.\n");
+        exit(1);
+    }
+
+    // Find the position of "$scp" in the line
+    const char *pos = strstr(line, "$scp");
+    if (pos != NULL) {
+        // Copy characters before "$scp"
+        strncpy(modified_command, line, pos - line);
+        modified_command[pos - line] = '\0';
+
+        // Concatenate "file-" and line number
+        sprintf(modified_command + (pos - line), "file-%d", line_num);
+        strcat(modified_command, pos + 4);
+	}
+    else
+	{
+		return (free(modified_command), ft_putstr_fd(ANSI_COLOR_RED "Error: $scp not found in the command\n" ANSI_COLOR_RESET, 2), exit(1), NULL);
+//        strcpy(modified_command, line);
+    }
+
+    return modified_command;
+}
+
 int	validate_domain_name(const char *domain)
 {
 	regex_t		regex;
@@ -48,28 +77,52 @@ char *ft_join_path(char *path, char *domain, char *ext)
 
 int	resolve_domains(char *discord_url)
 {
-	t_list	*tmp;
 	char	*command = NULL;
+	extern char **environ;
 	int		fd;
 	char	*line;
-	int		new_fd;
 	char	*path = NULL;
 	char	*old_path = NULL;
+	char 	*rename_file = NULL;
+	char	*answer = NULL;
+	char	*resolvers = NULL;
+	char	*value = NULL;
 
 	line = NULL;
-	if (check_file_exist("./output/resolved.txt"))
-		exec_command("mv ./output/resolved.txt ./output/resolved.txt.old", 0);
-	new_fd = open("./output/resolved.txt", O_CREAT | O_WRONLY, 0644);
-	if (new_fd == -1)
+	fd = open("domains.txt", O_RDONLY);
+	if (fd == -1)
 		return (perror("scprecon"), 1);
-	if (!check_file_exist("$HOME/resolvers.txt"))
+	
+	value = get_value("HOME", environ);
+	if (!value)
+		return (perror("scprecon"), 1);
+	
+	resolvers = ft_strjoin(value, "/resolvers.txt");
+	if (!check_file_exist(resolvers))
 	{
+		exec_command("echo && echo $HOME/resolvers.txt", 0);
+		ft_putstr(ANSI_COLOR_BOLD_BLUE"\nDo you want to install dnsvalidator? and download resolvers.txt file? [y/n]: "ANSI_COLOR_RESET);
+		answer = get_next_line(0);	
+		if (answer[strlen(answer) - 1] == '\n')
+			answer[strlen(answer) - 1] = '\0';
+		if (!string_to_bool(answer))
+			return (ft_putstr(ANSI_COLOR_YELLOW"should install dnsvalidator and download resolvers.txt file to do the resolution\n"ANSI_COLOR_RESET), free(answer), 0);
+		free(answer);
 		exec_command("git clone https://github.com/vortexau/dnsvalidator.git", 0);
 		exec_command("cd dnsvalidator; sudo python3 setup.py install && cd ..", 0);
 		exec_command("dnsvalidator -tL https://public-dns.info/nameservers.txt -threads 100 -o $HOME/resolvers.txt", 0);
 	}
-	if (!check_file_exist("$HOME/subdomains.txt"))
+	free(resolvers);
+	resolvers = ft_strjoin(value, "/subdomains.txt");
+	if (!resolvers)
+		return (perror("scprecon"), 1);
+	if (!check_file_exist(resolvers))
 	{
+		ft_putstr(ANSI_COLOR_YELLOW"Do you want to download subdomains.txt file? [y/n]: "ANSI_COLOR_RESET);
+		answer = get_next_line(0);
+		if (!string_to_bool(answer))
+			return (ft_putstr(ANSI_COLOR_YELLOW"should download subdomains.txt file to do the resolution\n"ANSI_COLOR_RESET), free(answer), 0);
+		free(answer);
 		exec_command("wget https://wordlists-cdn.assetnote.io/data/manual/best-dns-wordlist.txt -O $HOME/subdomains.txt", 0);
 	}
 	line = get_next_line(fd);
@@ -85,32 +138,36 @@ int	resolve_domains(char *discord_url)
 			command = ft_strjoin_free(command, path);
 			if (check_file_exist(path))
 			{
-				path = ft_strjoin(path, ".old");
-				old_path = ft_join_path("./output/", line, "-domains.txt.old");
-				exec_command(, 0);
+				old_path = ft_strjoin(path, ".old");
+				rename_file = ft_join_path("mv ", path, " ");
+				rename_file = ft_strjoin_free(rename_file, old_path);
+				exec_command(rename_file, 0);
 			}
 			exec_command(command, 0);
-			compare_files()
+			compare_files(old_path, path, discord_url);
+			free(command);
+			free(path);
+			free(old_path);
+			free(rename_file);
 		}
 		free(line);
 		line = get_next_line(fd);
 	}
-	close(new_fd);
-	compare_files("./output/resolved.txt.old", "./output/resolved.txt",
-		discord_url);
-	return (0);
+	close(fd);
+	return (free(resolvers), 0);
 }
 
-void	print_banner(void)
+void print_banner(void)
 {
-	printf("                   _____       __    __          __\n");
-	printf("                  / ___/__  __/ /_  / /__  _____/ /_\n");
-	printf("                  \\__ \\/ / / / __ \\/ / _ \\/ ___/ __/\n")
-	printf("                 ___/ / /_/ / /_/ / /  __/ /  / /_\n");
-	printf("                /____/\\__,_/_.___/_/\\___/_/   \\__/\n");
-	printf("\n");
-	printf("             Author: youssef achtatal \n");
-	printf("                           Version: 1.4.7\n");
+	printf(" ___                 ___                               \n");
+	printf("(  _`\\              |  _`\\                             \n");
+	printf("| (_(_)   ___ _ _   | (_) )   __     ___    _     ___  \n");
+	printf("`\\__ \\  /'___| '_`\\ | ,  /  /'__`\\ /'___) /'_`\\ /' _ `\\\n");
+	printf("( )_) |( (___| (_) )| |\\ \\ (  ___/( (___ ( (_) )| ( ) |\n");
+	printf("`\\____)`\\____) ,__/'(_) (_)`\\____)`\\____)`\\___/'(_) (_)\n");
+	printf("	     | |                                       \n");
+	printf("	     (_)   Author: youssef achtatal \n");
+	printf("            \n");
 }
 
 void	print_usage(const char *prog_name)
@@ -118,19 +175,14 @@ void	print_usage(const char *prog_name)
 	printf("Usage: %s [options]\n", prog_name);
 	printf("Options:\n");
 	printf("  -u, --url <target>          Domain to monitor. E.g: yahoo.com\n");
-	printf("  -q, --question <true|false> Disable user input questions\n");
-	printf("  -d,
-		--delete <domain>       Domain to remove from the monitored list. E.g: yahoo.com\n");
-	printf("  -t,
-		--processes <number>      Number of concurrent processes to use. Default: 10\n");
+	printf("  -d, --delete <domain>       Domain to remove from the monitored list. E.g: yahoo.com\n");
+	printf("  -t, --processes <number>      Number of concurrent processes to use. Default: 10\n");
 	printf("  -r, --resolve               Perform DNS resolution.\n");
-	printf("  -s,
-		--save                  save all result in alldomains.txt file\n");
+	printf("  -s, --save                  save all result in alldomains.txt file\n");
 	printf("  -l, --list                  Listing all monitored domains.\n");
 	printf("  -m, --reset                 Reset everything.\n");
 	printf("  -n, --discord               discord webhook url.\n");
-	printf("  -o,
-		--output               file name have all file name of your commands commadns.\n");
+	printf("  -o, --output               file name have all file name of your commands commadns.\n");
 	printf("  -h, --help                  Show this help message and exit.\n");
 }
 
@@ -233,35 +285,19 @@ int	open_files_and_add_content_to_alldomains(t_list *commands,
 	return (0);
 }
 
-int	add_content_of_files_to_alldomains(char *file_name, char *discord_url)
+int	add_content_of_files_to_alldomains(char *discord_url, int num_commands)
 {
 	int		fd;
 	char	*line;
 	t_list	*commands;
 	t_list	*new_commands;
-	int		num_commands;
+	int		i = 0;
 
 	line = NULL;
 	commands = NULL;
 	new_commands = NULL;
-	num_commands = 0;
-	fd = open(file_name, O_RDONLY);
-	if (fd == -1)
-		return (perror("scprecon"), 1);
-	line = get_next_line(fd);
-	while (line)
+	while (i < num_commands)
 	{
-		if (*line != '\n' && *line != '\0' && *line != '#')
-		{
-			num_commands++;
-			if (line[strlen(line) - 1] == '\n')
-				line[strlen(line) - 1] = '\0';
-			new_commands = ft_lstnew(strdup(line));
-			if (!new_commands)
-				return (ft_lstclear_libft(&commands, free), perror("scprecon"),
-					1);
-			ft_lstadd_back_libft(&commands, new_commands);
-		}
 		free(line);
 		line = get_next_line(fd);
 	}
@@ -277,15 +313,14 @@ int	main(int argc, char *argv[])
 	char *remove_domain = NULL;
 	char *discord_url = NULL;
 	int processes = 10;
-	int question = 1;
 	int resolve = 0;
 	int save_all = 0;
 	int listing = 0;
 	int reset = 0;
+	//int	counter = 0;
 	char *output_files = NULL;
 
-	static struct option long_options[] = {{"url", required_argument, 0, 'u'},
-		{"question", optional_argument, 0, 'q'}, {"delete", required_argument,
+	static struct option long_options[] = {{"url", required_argument, 0, 'u'}, {"delete", required_argument,
 		0, 'd'}, {"processes", required_argument, 0, 'p'}, {"resolve",
 		no_argument, 0, 'r'}, {"save", no_argument, 0, 's'}, {"list",
 		no_argument, 0, 'l'}, {"reset", no_argument, 0, 'm'}, {"help",
@@ -294,7 +329,7 @@ int	main(int argc, char *argv[])
 
 	print_banner();
 
-	while ((opt = getopt_long(argc, argv, "u:n:o:q::d:p:rlamh", long_options,
+	while ((opt = getopt_long(argc, argv, "u:n:o:d:p:rlamh", long_options,
 				&option_index)) != -1)
 	{
 		switch (opt)
@@ -307,12 +342,6 @@ int	main(int argc, char *argv[])
 			break ;
 		case 'o':
 			output_files = optarg;
-			break ;
-		case 'q':
-			if (optarg)
-				question = atoi(optarg);
-			else
-				question = 1;
 			break ;
 		case 'd':
 			remove_domain = optarg;
@@ -344,7 +373,6 @@ int	main(int argc, char *argv[])
 	printf("Options set:\n");
 	if (target)
 		printf("  Target: %s\n", target);
-	printf("  Disable questions: %d\n", question);
 	if (remove_domain)
 		printf("  Domain to remove: %s\n", remove_domain);
 	printf("  Processes: %d\n", processes);
@@ -383,7 +411,6 @@ int	main(int argc, char *argv[])
 				2), 1);
 
 	struct stat st = {0};
-
 	if (stat("./output", &st) == -1)
 		mkdir("./output", 0700);
 
@@ -402,32 +429,29 @@ int	main(int argc, char *argv[])
 	{
 		if (*line != '\n' && *line != '\0' && *line != '#')
 		{
-			num_commands++;
 			if (line[strlen(line) - 1] == '\n')
 				line[strlen(line) - 1] = '\0';
-			new_commands = ft_lstnew(strdup(line));
+			new_commands = ft_lstnew(replace_redirection(line, num_commands));
 			if (!new_commands)
 				return (ft_lstclear_libft(&commands, free), perror("scprecon"),
 					1);
 			ft_lstadd_back_libft(&commands, new_commands);
+			num_commands++;
 		}
 		free(line);
 		line = get_next_line(fd);
 	}
 	close(fd);
+
 	if (num_commands > processes)
 		processes = num_commands;
 	fork_processes(processes, commands, save_all);
 	if (output_files)
-	{
-		if (add_content_of_files_to_alldomains(output_files, discord_url))
+		if (add_content_of_files_to_alldomains(discord_url, num_commands))
 			return (1);
-	}
 	if (resolve)
-	{
 		if (resolve_domains(discord_url))
 			return (1);
-	}
 	ft_lstclear_libft(&commands, free);
 
 	return (0);

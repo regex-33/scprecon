@@ -194,5 +194,7 @@ int	remove_domain_in_list(const char *domain_to_delete);
 int add_domain_to_list(char *domain);
 int check_domain(char *domain);
 int append_file_content_to_alldomains_file(t_list *redir_list, t_context *ctx);
+bool string_to_bool(const char *v);
+int	check_file_exist(const char *file_name);
 
 #endif

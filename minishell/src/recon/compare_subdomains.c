@@ -140,13 +140,28 @@ int add_new_subdomains(void)
 	return (0);
 }
 
+char *create_message(const char *new_file, char *text)
+{
+	char *message = NULL;
+	char *join = NULL;
+
+	message = ft_substr(new_file, 0, strlen(new_file) - 4);
+	if (!message)
+		return (perror("Failed to allocate memory"), NULL);
+	join = ft_strjoin(text, message);
+	if (!join)
+		return (free(message), perror("Failed to allocate memory"), NULL);
+	return (free(message), join);
+}
+
 void	compare_files(const char *old_file, const char *new_file, char *discord_webhook_url)
 {
 	HashTable	*oldTable;
 	HashTable	*newTable;
 	Node		*current;
-	int			fd;
+	int			fd = 0;
 	int			new = 0;
+	char		*message = NULL;
 
 	oldTable = create_table();
 	newTable = create_table();
@@ -156,8 +171,7 @@ void	compare_files(const char *old_file, const char *new_file, char *discord_web
 	if (fd == -1)
 	{
 		printf("i am here test\n");
-		perror("Failed to open file 4");
-		exit(EXIT_FAILURE);
+		return (perror("Failed to open file 4"), free_table(oldTable), free_table(newTable), exit(EXIT_FAILURE));
 	}
 	for (int i = 0; i < HASH_TABLE_SIZE; i++)
 	{
@@ -167,25 +181,22 @@ void	compare_files(const char *old_file, const char *new_file, char *discord_web
 			if (!exists(oldTable, current->subdomain))
 			{
 				new = 1;
-				printf("hello world %s\n", current->subdomain);
 				ft_putendl_fd(current->subdomain, fd);	
 			}
 			current = current->next;
 		}
 	}
-	close(fd);
-	free_table(oldTable);
-	free_table(newTable);
 	if (new)
 	{
 		add_new_subdomains();
 		exec_command("mv ./output/alldomains.txt.old ./output/alldomains.txt", 0);
-		send_discord_file(discord_webhook_url, "./output/new_subdomains.txt", "New subdomains found!");
+		message = create_message(new_file, "New subdomains found in ");
+		send_discord_file(discord_webhook_url, "./output/new_subdomains.txt", message); 
 	}
 	else
 	{
 		exec_command("rm ./output/alldomains.txt.old", 0);
-		send_discord_file(discord_webhook_url, "./output/new_subdomains.txt", "No new subdomains found.");
+		send_discord_file(discord_webhook_url, "./output/new_subdomains.txt", message); 
 	}
-	exec_command("rm ./output/new_subdomains.txt", 0);
+	return (exec_command("rm ./output/new_subdomains.txt", 0), free(message), close(fd), free_table(oldTable), free_table(newTable)); 
 }

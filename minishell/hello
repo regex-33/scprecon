@@ -1,3 +1,4 @@
+$1
 Makefile
 README.md
 commands.txt
@@ -13,7 +14,7 @@ obj
 output
 output.txt
 pcre2-10.43.tar.gz
+resolvers.txt
 src
 test
-e1r6p8.1337.ma
-e1r6p8.1337.ma
+e2r8p8.1337.ma

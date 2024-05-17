@@ -1,6 +1,4 @@
-ls > hello
-id > test
-hostname -op >> $1
-hostname >> hello
-whoami >> test
-Echo badr test >> test
+ls > $scp 
+id > $scp
+hostname >> $scp
+whoami >> $scp
