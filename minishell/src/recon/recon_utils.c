@@ -22,7 +22,7 @@ int list_domains(void)
     return 0;
 }
 
-int check_domain(char *domain)
+int check_domain(char *domain) 
 {
     int fd;
     char *line = NULL;
@@ -35,7 +35,8 @@ int check_domain(char *domain)
         line[strcspn(line, "\n")] = 0;
         if (!strcmp(line, domain))
         {
-            printf(ANSI_COLOR_RED"\n[!] %s is already being monitored."ANSI_COLOR_RESET, domain);
+            // if (flag)
+            //     printf(ANSI_COLOR_RED"\n[!] %s is already being monitored."ANSI_COLOR_RESET, domain);
             free(line);
             return 1;
         }
@@ -48,7 +49,7 @@ int add_domain_to_list(char *domain)
 {
     FILE *domains;
 
-    if (!domain || check_domain(domain))
+    if (!domain)
         return 1;
     domains = fopen("domains.txt", "a");
     if (!domains)
@@ -56,8 +57,7 @@ int add_domain_to_list(char *domain)
         perror("Error opening domains.txt");
         return 1;
     }
-    if (!check_domain(domain))
-        fprintf(domains, "%s\n", domain);
+    fprintf(domains, "%s\n", domain);
     fclose(domains);
     printf(ANSI_COLOR_GREEN"\n[+] %s was successfully added to the monitored list."ANSI_COLOR_RESET, domain);
     return 0;

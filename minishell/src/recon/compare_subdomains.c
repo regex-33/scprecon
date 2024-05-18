@@ -108,7 +108,7 @@ void	read_file_to_table(const char *filename, HashTable *hashTable)
 	fclose(file);
 }
 
-int add_new_subdomains(void)
+int add_new_subdomains(char *file)
 {
 	int	fd;
 	char *line;
@@ -116,16 +116,10 @@ int add_new_subdomains(void)
 
 	fd = open("./output/new_subdomains.txt", O_RDONLY);
 	if (fd == -1)
-	{
-		perror("Failed to open file 2");
-		return (1);
-	}
-	new_fd = open("./output/alldomains.txt.old", O_CREAT | O_WRONLY | O_APPEND, 0644);
+		return (perror("Failed to open file 2"), 1);
+	new_fd = open(file, O_CREAT | O_WRONLY | O_APPEND, 0644);
 	if (new_fd == -1)
-	{
-		perror("Failed to open file 3");
-		return (1);
-	}
+		return (perror("Failed to open file 3"),1);
 	line = get_next_line(fd);
 	while (line)
 	{
@@ -191,7 +185,7 @@ int	compare_files(char *old_file, char *new_file, char *discord_webhook_url)
 	}
 	if (new)
 	{
-		add_new_subdomains();
+		add_new_subdomains(new_file);
 		mv_command = create_mv_command(new_file, old_file);
 		if (!mv_command)
 			return (perror("Failed to allocate memory"), free_table(oldTable), free_table(newTable), close(fd), 1);

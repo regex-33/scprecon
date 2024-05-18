@@ -6,8 +6,8 @@
       "type": "lldb",
       "request": "launch",
       "args": [],
-      "cwd": "/goinfre/yachtata/scprecon/minishell/src/recon",
-      "program": "/goinfre/yachtata/scprecon/minishell/src/recon/build/Debug/outDebug"
+      "cwd": "/goinfre/yachtata/scprecon",
+      "program": "/goinfre/yachtata/scprecon/build/Debug/outDebug"
     }
   ]
 }
