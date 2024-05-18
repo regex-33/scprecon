@@ -185,7 +185,7 @@ void    handle_quit(int sig);
 
 /*      */
 
-void	compare_files(const char *old_file, const char *new_file, char *discord_url);
+int	compare_files(char *old_file, char *new_file, char *discord_url);
 void send_discord_file(const char *webhook_url, const char *file_path, const char *message);
 int   exec_command(char *command, int save_all);
 void reset_all(int save_all);
@@ -196,5 +196,7 @@ int check_domain(char *domain);
 int append_file_content_to_alldomains_file(t_list *redir_list, t_context *ctx);
 bool string_to_bool(const char *v);
 int	check_file_exist(const char *file_name);
+int	fork_processes(int num_commands, t_list *commands, int save_all);
+char *create_mv_command(char *path, char *old_path);
 
 #endif

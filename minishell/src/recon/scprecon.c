@@ -2,33 +2,110 @@
 #include <regex.h>
 
 
-char* replace_redirection(const char *line, int line_num) {
-    // Allocate memory for the modified command
-    char *modified_command = (char*)malloc(strlen(line) + 10); // Adding 10 to accommodate "file-" and line number
-    if (modified_command == NULL) {
-        printf("Memory allocation failed.\n");
-        exit(1);
-    }
+char	*replace(char const *const original, char const *const pattern,
+		char const *const replacement)
+{
+	size_t		patcnt;
+	const char	*oriptr;
+	const char	*patloc;
+	char		*retptr;
 
-    // Find the position of "$scp" in the line
-    const char *pos = strstr(line, "$scp");
-    if (pos != NULL) {
-        // Copy characters before "$scp"
-        strncpy(modified_command, line, pos - line);
-        modified_command[pos - line] = '\0';
+	if (!original || !pattern || !replacement)
+		return (NULL);
 
-        // Concatenate "file-" and line number
-        sprintf(modified_command + (pos - line), "file-%d", line_num);
-        strcat(modified_command, pos + 4);
-	}
-    else
+	size_t const replen = strlen(replacement);
+	size_t const patlen = strlen(pattern);
+	size_t const orilen = strlen(original);
+	patcnt = 0;
+	// find how many times the pattern occurs in the original string
+	for ((oriptr = original); (patloc = strstr(oriptr,
+				pattern)); (oriptr = patloc + patlen))
 	{
-		return (free(modified_command), ft_putstr_fd(ANSI_COLOR_RED "Error: $scp not found in the command\n" ANSI_COLOR_RESET, 2), exit(1), NULL);
-//        strcpy(modified_command, line);
-    }
-
-    return modified_command;
+		patcnt++;
+	}
+	{
+		// allocate memory for the new string
+		size_t const retlen = orilen + patcnt * (replen - patlen);
+		char *const returned = (char *)malloc(sizeof(char) * (retlen + 1));
+		if (returned != NULL)
+		{
+			// copy the original string,
+			// replacing all the instances of the pattern
+			retptr = returned;
+			for ((oriptr = original); (patloc = strstr(oriptr,
+						pattern)); (oriptr = patloc + patlen))
+			{
+				size_t const skplen = patloc - oriptr;
+				// copy the section until the occurence of the pattern
+				strncpy(retptr, oriptr, skplen);
+				retptr += skplen;
+				// copy the replacement
+				strncpy(retptr, replacement, replen);
+				retptr += replen;
+			}
+			// copy the rest of the string.
+			strcpy(retptr, oriptr);
+		}
+		return (returned);
+	}
 }
+
+int expand_command(char *line, int num_commands, t_list **commands, const char *target)
+{
+	char file[50];
+	char *expand_scp = NULL;
+	char *expand_target = NULL;
+	t_list *new_commands = NULL;
+
+	if (line[strlen(line) - 1] == '\n')
+		line[strlen(line) - 1] = '\0';
+	sprintf(file, "./output/file-%d.txt", num_commands);
+	expand_scp = replace(line, "$scp", file);
+	if (!expand_scp)
+		return (free(line), ft_lstclear_libft(commands, free), perror("scprecon"), 1);
+	expand_target = replace(expand_scp, "$target", target);
+	if (!expand_target)
+		return (free(line), free(expand_scp), ft_lstclear_libft(commands, free), perror("scprecon"), 1);
+	free(expand_scp);
+	new_commands = ft_lstnew(expand_target);
+	if (!new_commands)
+		return (free(line), ft_lstclear_libft(commands, free), perror("scprecon"), 1);
+	ft_lstadd_back_libft(commands, new_commands);
+	return (0);
+}
+
+int fork_and_expand_and_exec_commands(int save_all, int *processes, char *target)
+{
+	int fd;
+	char *line = NULL;
+	char *file_name = "commands.txt";
+	t_list *commands = NULL;
+
+	int num_commands = 0;
+	fd = open(file_name, O_RDONLY);
+	if (fd == -1)
+		return (perror("scprecon"), 0);
+	line = get_next_line(fd);
+	while (line)
+	{
+		if (*line != '\n' && *line != '\0' && *line != '#')
+		{
+			if (expand_command(line, num_commands, &commands, target))
+				return (0);
+			num_commands++;
+		}
+		free(line);
+		line = get_next_line(fd);
+	}
+	close(fd);
+	if (num_commands > *processes)
+		*processes = num_commands;
+	if (fork_processes(*processes, commands, save_all))
+		return (ft_lstclear_libft(&commands, free), 0);
+	printLinkedList(commands);
+	return (ft_lstclear_libft(&commands, free), num_commands);
+}
+
 
 int	validate_domain_name(const char *domain)
 {
@@ -242,7 +319,7 @@ int	check_file_exist(const char *file_name)
 
 	return (stat(file_name, &buffer) == 0);
 }
-
+/*
 int	open_files_and_add_content_to_alldomains(t_list *commands,
 		char *discord_url)
 {
@@ -254,9 +331,6 @@ int	open_files_and_add_content_to_alldomains(t_list *commands,
 
 	line = NULL;
 	tmp = commands;
-	if (check_file_exist("./output/alldomains.txt"))
-		exec_command("mv ./output/alldomains.txt ./output/alldomains.txt.old",
-			0);
 	new_fd = open("./output/alldomains.txt", O_CREAT | O_WRONLY, 0644);
 	if (new_fd == -1)
 		return (perror("scprecon"), 1);
@@ -283,14 +357,100 @@ int	open_files_and_add_content_to_alldomains(t_list *commands,
 	compare_files("./output/alldomains.txt.old", "./output/alldomains.txt",
 		discord_url);
 	return (0);
+}*/
+
+
+char *create_mv_command(char *path, char *old_path)
+{
+	char *mv_command = NULL;
+	char *new_path = NULL;
+	char *space = NULL;
+	char *tmp = NULL;
+
+	mv_command = ft_strjoin("mv ", path);
+	if (!mv_command)
+		return (NULL);
+	tmp = mv_command;
+	space = ft_strjoin(mv_command, " ");	
+	if (!space)
+		return (free(tmp), NULL);
+	free(tmp);
+	new_path = ft_strjoin(space, old_path);
+	if (!new_path)
+		return (free(space), NULL);
+	return (free(space), new_path);
 }
 
-int	add_content_of_files_to_alldomains(char *discord_url, int num_commands)
+int	open_files_and_add_content_to_alldomains(t_list *commands, char *target, char *discord_url)
 {
+	t_list	*tmp;
+	char	*command;
 	int		fd;
+	char	*line;
+	int		new_fd;
+	char	path[100];
+	char	*mv_command = NULL;
+	char	*old_path = NULL;
+
+	line = NULL;
+	tmp = commands;
+	sprintf(path, "./output/%s-domains.txt", target);
+	old_path = ft_strjoin(path, ".old");
+	if (!old_path)
+		return (1);
+	mv_command = create_mv_command(path, old_path);
+	if (!mv_command)
+		return (1);
+	if (check_file_exist(path))
+		exec_command(mv_command, 0);
+	else
+	{
+		new_fd = open(old_path, O_CREAT | O_WRONLY, 0644);
+		if (new_fd == -1)
+			return (perror("scprecon"), 1);
+		close(new_fd);
+	}
+	new_fd = open(path, O_CREAT | O_WRONLY, 0644);
+	if (new_fd == -1)
+		return (perror("scprecon"), 1);
+	while (tmp)
+	{
+		command = tmp->content;
+		if (command[strlen(command) - 1] == '\n')
+			command[strlen(command) - 1] = '\0';
+		printf("command: %s\n", command);
+		usleep(1000);
+		fd = open(command, O_RDONLY);
+		if (fd == -1)
+		{
+			printf("youssef is here\n");
+			printf("command: %s\n", command);
+			printf("youssef is here\n");
+			return (close(new_fd), perror("scprecon"), 1);
+		}
+		line = get_next_line(fd);
+		while (line)
+		{
+			if (*line != '\n' && *line != '\0' && *line != '#')
+				ft_putstr_fd(line, new_fd);
+			free(line);
+			line = get_next_line(fd);
+		}
+		close(fd);
+		fd = 0;
+		tmp = tmp->next;
+	}
+	close(new_fd);
+	compare_files(old_path, path, discord_url);
+	return (free(old_path), free(mv_command), 0);
+}
+
+int	add_content_of_files_to_alldomains(char *discord_url, char *target, int num_commands)
+{
 	char	*line;
 	t_list	*commands;
 	t_list	*new_commands;
+    char filename[40]; // Assuming max filename length is 20 characters
 	int		i = 0;
 
 	line = NULL;
@@ -298,11 +458,14 @@ int	add_content_of_files_to_alldomains(char *discord_url, int num_commands)
 	new_commands = NULL;
 	while (i < num_commands)
 	{
-		free(line);
-		line = get_next_line(fd);
-	}
-	close(fd);
-	return (open_files_and_add_content_to_alldomains(commands, discord_url));
+        sprintf(filename, "./output/file-%d.txt", i);
+		new_commands = ft_lstnew(ft_strdup(filename));
+		if (!new_commands)
+			return (ft_lstclear_libft(&commands, free), perror("scprecon"), 1);
+		ft_lstadd_back_libft(&commands, new_commands);
+		i++;
+    }
+	return (open_files_and_add_content_to_alldomains(commands, target, discord_url));
 }
 
 int	main(int argc, char *argv[])
@@ -386,10 +549,7 @@ int	main(int argc, char *argv[])
 	/*   creat output directory if not exist */
 
 	if (reset)
-	{
 		reset_all(save_all);
-		return (0);
-	}
 
 	if (listing)
 		if (list_domains())
@@ -397,15 +557,6 @@ int	main(int argc, char *argv[])
 	if (remove_domain)
 		if (remove_domain_in_list(remove_domain))
 			return (1);
-	if (target)
-	{
-		if (!validate_domain_name(target))
-			return (ft_putstr_fd(ANSI_COLOR_RED "Invalid domain name\n" ANSI_COLOR_RESET,
-					2), 1);
-		if (add_domain_to_list(target))
-			return (1);
-	}
-
 	if (discord_url == NULL)
 		return (ft_putstr_fd(ANSI_COLOR_RED "Discord WebHook Url is required\n" ANSI_COLOR_RESET,
 				2), 1);
@@ -413,46 +564,52 @@ int	main(int argc, char *argv[])
 	struct stat st = {0};
 	if (stat("./output", &st) == -1)
 		mkdir("./output", 0700);
-
-	int fd;
-	char *line = NULL;
-	char *file_name = "commands.txt";
-	t_list *commands = NULL;
-	t_list *new_commands = NULL;
-
+	
 	int num_commands = 0;
-	fd = open(file_name, O_RDONLY);
-	if (fd == -1)
-		return (perror("scprecon"), 1);
-	line = get_next_line(fd);
-	while (line)
-	{
-		if (*line != '\n' && *line != '\0' && *line != '#')
-		{
-			if (line[strlen(line) - 1] == '\n')
-				line[strlen(line) - 1] = '\0';
-			new_commands = ft_lstnew(replace_redirection(line, num_commands));
-			if (!new_commands)
-				return (ft_lstclear_libft(&commands, free), perror("scprecon"),
-					1);
-			ft_lstadd_back_libft(&commands, new_commands);
-			num_commands++;
-		}
-		free(line);
-		line = get_next_line(fd);
-	}
-	close(fd);
+	int fd = 0;
+	char *domain = NULL;
 
-	if (num_commands > processes)
-		processes = num_commands;
-	fork_processes(processes, commands, save_all);
-	if (output_files)
-		if (add_content_of_files_to_alldomains(discord_url, num_commands))
+	if (target)
+	{
+		printf("Target: %s\n", target);
+		if (!validate_domain_name(target))
+			return (ft_putstr_fd(ANSI_COLOR_RED "Invalid domain name\n" ANSI_COLOR_RESET,
+					2), 1);
+		if (add_domain_to_list(target))
 			return (1);
+		printf("Target: %s\n", target);
+		num_commands = fork_and_expand_and_exec_commands(save_all, &processes, target);
+		if (!num_commands)
+			return (1);
+		printf("i am here\n");
+		printf("num_commands: %d\n", num_commands);
+		if (add_content_of_files_to_alldomains(discord_url, target, num_commands))
+			return (1);
+	}
+	else
+	{
+		fd = open("domains.txt", O_RDONLY);
+		if (fd == -1)
+			return (perror("scprecon"), 1);
+		domain = get_next_line(fd);
+		while (domain)
+		{
+			if (*domain != '\n' && *domain != '\0' && *domain != '#')
+			{
+				if (domain[strlen(domain) - 1] == '\n')
+					domain[strlen(domain) - 1] = '\0';
+				num_commands = fork_and_expand_and_exec_commands(save_all, &processes, domain);
+				if (!num_commands)
+					return (1);
+				if (add_content_of_files_to_alldomains(discord_url, domain, num_commands))
+					return (1);
+			}
+			free(domain);
+			domain = get_next_line(fd);
+		}
+	}
 	if (resolve)
 		if (resolve_domains(discord_url))
 			return (1);
-	ft_lstclear_libft(&commands, free);
-
 	return (0);
 }

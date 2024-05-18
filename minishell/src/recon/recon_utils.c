@@ -2,7 +2,7 @@
 
 void reset_all(int save_all)
 {
-    exec_command("cd ./output/ && rm -f *.txt && cd .. && rm -f domains.txt && touch domains.txt", save_all);
+    exec_command("cd ./output/ && rm -f *.txt && rm -f *.old && cd .. && rm -f domains.txt && touch domains.txt", save_all);
     printf(ANSI_COLOR_RED "\n[!] Sublert was reset successfully. Please add new domains to monitor!" ANSI_COLOR_RESET);
 }
 
@@ -56,7 +56,8 @@ int add_domain_to_list(char *domain)
         perror("Error opening domains.txt");
         return 1;
     }
-    fprintf(domains, "%s\n", domain);
+    if (!check_domain(domain))
+        fprintf(domains, "%s\n", domain);
     fclose(domains);
     printf(ANSI_COLOR_GREEN"\n[+] %s was successfully added to the monitored list."ANSI_COLOR_RESET, domain);
     return 0;

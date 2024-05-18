@@ -140,13 +140,20 @@ fclean: clean
 
 re: fclean all
 
-norm:
-	@printf "\n${GRN}##########${YEL} NORMINETTE ${GRN}##########${NOCOL}\n"
-	@printf "\n${GRN}LIBFT:${BLU}\n\n"
-	@norminette $(LFT_DIR)/srcs
-	@printf "\n${GRN}MINISHELL:${BLU}\n\n"
-	@norminette $(INC_PATH)
-	@norminette $(SRC_PATH)
-	@printf "${NOCOL}"
+install_go:
+	@echo "\n${GRN}##########${YEL} INSTALLING GO ${GRN}##########${NOCOL}\n"
+	@echo "${GRN}Downloading go...${NOCOL}"
+	@sudo apt install golang-go
+	@echo "${GRN}Setting up go...${NOCOL}"
+	@echo "export PATH=$PATH:/usr/local/go/bin" >> ~/.bashrc
+	@source ~/.bashrc
+
+requirements:
+	@echo "\n${GRN}##########${YEL} INSTALLING ${GRN}##########${NOCOL}\n"
+	@echo "${GRN}Installing p...${NOCOL}"
+	@go install github.com/d3mondev/puredns/v2@latest
+	@echo "${GRN}Installing amass...${NOCOL}"
+	@sudo apt install massdns
+
 
 .PHONY: all clean fclean re norm

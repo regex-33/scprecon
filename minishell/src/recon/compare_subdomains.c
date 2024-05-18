@@ -145,7 +145,9 @@ char *create_message(const char *new_file, char *text)
 	char *message = NULL;
 	char *join = NULL;
 
-	message = ft_substr(new_file, 0, strlen(new_file) - 4);
+	if (!new_file || strlen(new_file) < 21)
+		return (perror("Invalid file name"), NULL); 
+	message = ft_substr(new_file, 9, strlen(new_file) - 21);
 	if (!message)
 		return (perror("Failed to allocate memory"), NULL);
 	join = ft_strjoin(text, message);
@@ -154,7 +156,7 @@ char *create_message(const char *new_file, char *text)
 	return (free(message), join);
 }
 
-void	compare_files(const char *old_file, const char *new_file, char *discord_webhook_url)
+int	compare_files(char *old_file, char *new_file, char *discord_webhook_url)
 {
 	HashTable	*oldTable;
 	HashTable	*newTable;
@@ -162,6 +164,8 @@ void	compare_files(const char *old_file, const char *new_file, char *discord_web
 	int			fd = 0;
 	int			new = 0;
 	char		*message = NULL;
+	char *mv_command = NULL;
+	char *rm_command = NULL;
 
 	oldTable = create_table();
 	newTable = create_table();
@@ -170,8 +174,7 @@ void	compare_files(const char *old_file, const char *new_file, char *discord_web
 	fd = open("./output/new_subdomains.txt", O_CREAT | O_WRONLY , 0644);
 	if (fd == -1)
 	{
-		printf("i am here test\n");
-		return (perror("Failed to open file 4"), free_table(oldTable), free_table(newTable), exit(EXIT_FAILURE));
+		return (perror("Failed to open file 4"), free_table(oldTable), free_table(newTable), exit(EXIT_FAILURE), 1);
 	}
 	for (int i = 0; i < HASH_TABLE_SIZE; i++)
 	{
@@ -189,14 +192,27 @@ void	compare_files(const char *old_file, const char *new_file, char *discord_web
 	if (new)
 	{
 		add_new_subdomains();
-		exec_command("mv ./output/alldomains.txt.old ./output/alldomains.txt", 0);
+		mv_command = create_mv_command(new_file, old_file);
+		if (!mv_command)
+			return (perror("Failed to allocate memory"), free_table(oldTable), free_table(newTable), close(fd), 1);
+		exec_command(mv_command, 0);
 		message = create_message(new_file, "New subdomains found in ");
+		if (!message)
+			return (perror("Failed to allocate memory"), free(mv_command), free_table(oldTable), free_table(newTable), close(fd), 1);
 		send_discord_file(discord_webhook_url, "./output/new_subdomains.txt", message); 
+		free(mv_command);
 	}
 	else
 	{
-		exec_command("rm ./output/alldomains.txt.old", 0);
+		rm_command = ft_strjoin("rm -f ", old_file);
+		if (!rm_command)
+			return (perror("Failed to allocate memory"), free_table(oldTable), free_table(newTable), close(fd), 1);
+		exec_command(rm_command, 0);
+		message = create_message(new_file, "No new subdomains found in ");
+		if (!message)
+			return (perror("Failed to allocate memory"), free(rm_command), free_table(oldTable), free_table(newTable), close(fd), 1);
 		send_discord_file(discord_webhook_url, "./output/new_subdomains.txt", message); 
+		free(rm_command);
 	}
-	return (exec_command("rm ./output/new_subdomains.txt", 0), free(message), close(fd), free_table(oldTable), free_table(newTable)); 
+	return (exec_command("rm ./output/new_subdomains.txt", 0), free(message), close(fd), free_table(oldTable), free_table(newTable), 0); 
 }

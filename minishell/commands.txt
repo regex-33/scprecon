@@ -1,4 +1,7 @@
-ls > $scp 
-id > $scp
+echo $target > $scp 
+id  > $scp
 hostname >> $scp
+echo $target > $scp 
+echo $target > $scp 
 whoami >> $scp
+echo $target >> $scp
