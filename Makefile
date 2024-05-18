@@ -6,7 +6,7 @@
 #    By: bchanaa <marvin@42.fr>                     +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/04/21 12:11:54 by bchanaa           #+#    #+#              #
-#    Updated: 2024/05/05 18:26:58 by bchanaa          ###   ########.fr        #
+#    Updated: 2024/05/18 20:30:32 by yachtata         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 # COLORS NOCOL=\033[0m
@@ -26,7 +26,7 @@ UL = \033[4m
 UP = \033[A
 
 # NAMES
-NAME = minishell
+NAME = scprecon 
 
 # MAKE
 MAKE = make
