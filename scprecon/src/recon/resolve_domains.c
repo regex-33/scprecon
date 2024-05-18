@@ -25,7 +25,6 @@ int	resolve_domains(char *discord_url)
 	resolvers = ft_strjoin(value, "/resolvers.txt");
 	if (!check_file_exist(resolvers))
 	{
-		exec_command("echo && echo $HOME/resolvers.txt", 0);
 		ft_putstr(ANSI_COLOR_BOLD_BLUE"\nDo you want to install dnsvalidator? and download resolvers.txt file? [y/n]: "ANSI_COLOR_RESET);
 		answer = get_next_line(0);	
 		if (answer[strlen(answer) - 1] == '\n')
@@ -57,7 +56,7 @@ int	resolve_domains(char *discord_url)
 		{
 			if (line[strlen(line) - 1] == '\n')
 				line[strlen(line) - 1] = '\0';
-			path = ft_join_path("./output/", line, "-domains.txt");
+			path = ft_join_path("./output/", line, "-resolve.txt");
 			command = ft_strjoin("$HOME/go/bin/puredns bruteforce $HOME/subdomains.txt ", line);
 			command = ft_strjoin_free(command, " -r $HOME/resolvers.txt -w ");
 			command = ft_strjoin_free(command, path);

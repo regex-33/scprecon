@@ -95,8 +95,7 @@ void	read_file_to_table(const char *filename, HashTable *hashTable)
 	file = fopen(filename, "r");
 	if (!file)
 	{
-		printf("filename: %s\n", filename);
-		perror("Failed to open file 1");
+		perror("Failed to open file");
 		exit(EXIT_FAILURE);
 	}
 	while (fgets(line, sizeof(line), file))
@@ -115,14 +114,13 @@ int add_new_subdomains(char *file)
 
 	fd = open("./output/new_subdomains.txt", O_RDONLY);
 	if (fd == -1)
-		return (perror("Failed to open file 2"), 1);
+		return (perror("Failed to open file"), 1);
 	new_fd = open(file, O_CREAT | O_WRONLY | O_APPEND, 0644);
 	if (new_fd == -1)
-		return (perror("Failed to open file 3"),1);
+		return (perror("Failed to open file"),1);
 	line = get_next_line(fd);
 	while (line)
 	{
-		printf("\nline: %s\n", line);
 		if (*line != '\n' && *line != '\0' && *line != '#')
 			ft_putstr_fd(line, new_fd);
 		free(line);
@@ -165,7 +163,7 @@ int	compare_files(char *old_file, char *new_file, char *discord_webhook_url)
 	fd = open("./output/new_subdomains.txt", O_CREAT | O_WRONLY , 0644);
 	if (fd == -1)
 	{
-		return (perror("Failed to open file 4"), free_table(oldTable), free_table(newTable), exit(EXIT_FAILURE), 1);
+		return (perror("Failed to open file"), free_table(oldTable), free_table(newTable), exit(EXIT_FAILURE), 1);
 	}
 	for (int i = 0; i < HASH_TABLE_SIZE; i++)
 	{
@@ -175,7 +173,6 @@ int	compare_files(char *old_file, char *new_file, char *discord_webhook_url)
 			if (!exists(oldTable, current->subdomain))
 			{
 				new = 1;
-				printf("\n\n\nNew subdomain: %s\n", current->subdomain);
 				ft_putendl_fd(current->subdomain, fd);	
 			}
 			current = current->next;

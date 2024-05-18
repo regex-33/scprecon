@@ -32,7 +32,7 @@ int add_domain_to_list(char *domain)
     }
     fprintf(domains, "%s\n", domain);
     fclose(domains);
-    printf(ANSI_COLOR_GREEN"\n[+] %s was successfully added to the monitored list."ANSI_COLOR_RESET, domain);
+    ft_printf(ANSI_COLOR_GREEN"\n[+] %s was successfully added to the monitored list.\n"ANSI_COLOR_RESET, domain);
     return 0;
 }
 

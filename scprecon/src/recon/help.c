@@ -31,5 +31,5 @@ void	print_usage(const char *prog_name)
 void reset_all(int save_all)
 {
     exec_command("cd ./output/ && rm -f *.txt && rm -f *.old && cd .. && rm -f domains.txt && touch domains.txt", save_all);
-    printf(ANSI_COLOR_RED "\n[!] Sublert was reset successfully. Please add new domains to monitor!" ANSI_COLOR_RESET);
+    ft_printf(ANSI_COLOR_RED "\n[!] Sublert was reset successfully. Please add new domains to monitor!\n" ANSI_COLOR_RESET);
 }

@@ -1,5 +1,5 @@
 echo $target > $scp 
-id  > $scp
+id  >  $scp
 hostname >> $scp
 echo $target > $scp 
 echo $target > $scp 

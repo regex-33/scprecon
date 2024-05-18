@@ -72,6 +72,64 @@ int	validate_domain_name(const char *domain)
 	}
 }
 
+void parse_arguments(int argc, char *argv[], char **target, char **remove_domain, char **discord_url, int *processes, int *resolve, int *save_all, int *listing, int *reset, int *remove_flag) {
+    int opt;
+    int option_index = 0;
+
+    static struct option long_options[] = {
+        {"url", required_argument, 0, 'u'},
+        {"delete", required_argument, 0, 'd'},
+        {"processes", required_argument, 0, 'p'},
+        {"resolve", no_argument, 0, 'r'},
+        {"save", no_argument, 0, 's'},
+        {"list", no_argument, 0, 'l'},
+        {"reset", no_argument, 0, 'm'},
+        {"help", no_argument, 0, 'h'},
+        {"discord", required_argument, 0, 'n'},
+        {"remove", no_argument, 0, 'o'},
+        {0, 0, 0, 0}
+    };
+
+    while ((opt = getopt_long(argc, argv, "u:n:o:d:p:rlamh", long_options, &option_index)) != -1) {
+        switch (opt) {
+            case 'u':
+                *target = optarg;
+                break;
+            case 'n':
+                *discord_url = optarg;
+                break;
+            case 'd':
+                *remove_domain = optarg;
+                break;
+            case 'p':
+                *processes = atoi(optarg);
+                break;
+            case 'r':
+                *resolve = 1;
+                break;
+            case 's':
+                *save_all = 1;
+                break;
+            case 'o':
+                *remove_flag = 1;
+                break;
+            case 'l':
+                *listing = 1;
+                break;
+            case 'm':
+                *reset = 1;
+                break;
+            case 'h':
+                print_usage(argv[0]);
+                exit(EXIT_SUCCESS);
+            default:
+                print_usage(argv[0]);
+                exit(EXIT_FAILURE);
+        }
+    }
+}
+
+
 int check_files_if_all_exist(int num_commands)
 {
 	char	path[100];

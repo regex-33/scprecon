@@ -37,6 +37,7 @@ int check_files_if_all_exist(int num_commands);
 int	validate_domain_name(const char *domain);
 char	*replace(char const *const original, char const *const pattern, char const *const replacement);
 int check_domain(char *domain);
+void parse_arguments(int argc, char *argv[], char **target, char **remove_domain, char **discord_url, int *processes, int *resolve, int *save_all, int *listing, int *reset, int *remove_flag);
 
 /*  post to discord */
 
@@ -67,7 +68,7 @@ void handle_listing();
 void handle_remove_domain(char *remove_domain);
 void handle_discord_url_check(char *discord_url);
 void handle_domain_processing(char *target, char *discord_url, int save_all, int processes);
-void handle_file_operations(char *target, char *discord_url, int save_all, int processes);
+void handle_file_operations(char *discord_url, int save_all, int processes);
 void handle_remove_files();
 void handle_domain_resolution(char *discord_url);
 
