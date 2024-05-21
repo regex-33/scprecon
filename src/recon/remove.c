@@ -4,8 +4,8 @@ int	remove_domain_in_list(const char *domain_to_delete)
 {
 	FILE	*domains;
 	FILE	*new_file;
-	char	line[256];
-	char	command[256];
+	char	line[1024];
+	char	command[1024];
 
 	if (domain_to_delete)
 	{
@@ -23,8 +23,7 @@ int	remove_domain_in_list(const char *domain_to_delete)
 			line[strcspn(line, "\n")] = 0;
 			if (strcmp(line, domain_to_delete) == 0)
 			{
-				snprintf(command, sizeof(command), "rm -f ./output/%s.txt",
-					line);
+				snprintf(command, sizeof(command), "rm -f ./output/%s.txt", line);
 				system(command);
 				printf(ANSI_COLOR_YELLOW"\n[-] %s was successfully removed from the monitored list.\n "ANSI_COLOR_RESET, line);
 			}

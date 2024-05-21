@@ -32,7 +32,10 @@ void handle_file_operations(char *discord_url, int save_all, int processes) {
     num_commands = ft_count_coomands("commands.txt");
     fd = open("domains.txt", O_RDONLY);
     if (fd == -1)
+    {
+	system("echo nooooooooooooooo > ~/scprecon/youssef");
         return (perror("scprecon"), exit(1));
+    }
     domain = get_next_line(fd);
     while (domain) {
         if (*domain != '\n' && *domain != '\0' && *domain != '#') {

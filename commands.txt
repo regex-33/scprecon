@@ -1,9 +1,3 @@
-echo $target > $scp 
-id  >  $scp
-hostname >> $scp
-echo $target > $scp 
-echo $target > $scp 
-whoami >> $scp
-echo $target >> $scp
-echo ls >> $scp
-echo youssef >> $scp
+assetfinder --subs-only $target > $scp
+amass enum -passive -d $target -o $scp 
+
